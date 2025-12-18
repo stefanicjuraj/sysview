@@ -4,46 +4,57 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
 	"github.com/stefanicjuraj/sysview/internal/network"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "sysview",
-	Short: "List active network processes and ports",
 	Run: func(cmd *cobra.Command, args []string) {
-		processes, err := network.GetActivePorts()
+		processes, err := network.GetActivePorts("")
 		if err != nil {
 			fmt.Fprintf(cmd.OutOrStderr(), "Error: %v\n", err)
 			return
 		}
 
 		if len(processes) == 0 {
-			fmt.Println("No active network processes found.")
+			fmt.Println("No active network processes.")
 			return
 		}
 
-		fmt.Printf("Active Network Processes (%d)\n", len(processes))
-		fmt.Println(strings.Repeat("-", 80))
-		fmt.Printf("%-8s %-20s %-12s %-8s %-18s %-12s\n", "PID", "COMMAND", "USER", "PORT", "ADDRESS", "STATE")
-		fmt.Println(strings.Repeat("-", 80))
-
-		for _, proc := range processes {
-			state := proc.State
-			if state == "" {
-				state = "-"
-			}
-			fmt.Printf("%-8s %-20s %-12s %-8d %-18s %-12s\n",
-				proc.PID,
-				truncateString(proc.Command, 20),
-				truncateString(proc.User, 12),
-				proc.Port,
-				proc.Address,
-				state,
-			)
-		}
+		displayProcesses(processes)
 	},
+}
+
+func displayProcesses(processes []network.NetworkProcess) {
+	fmt.Printf("Active Network Processes (%d)\n", len(processes))
+	fmt.Println(strings.Repeat("-", 100))
+	fmt.Printf("%-8s %-20s %-8s %-8s %-20s %-20s %-12s\n", "PID", "COMMAND", "PROTO", "PORT", "LOCAL ADDRESS", "REMOTE ADDRESS", "STATE")
+	fmt.Println(strings.Repeat("-", 100))
+
+	for _, proc := range processes {
+		state := proc.State
+		if state == "" {
+			state = "-"
+		}
+
+		remoteAddr := proc.RemoteAddress
+		if remoteAddr == "" {
+			remoteAddr = "-"
+		} else if proc.RemotePort > 0 {
+			remoteAddr = fmt.Sprintf("%s:%d", remoteAddr, proc.RemotePort)
+		}
+
+		fmt.Printf("%-8s %-20s %-8s %-8d %-20s %-20s %-12s\n",
+			proc.PID,
+			truncateString(proc.Command, 20),
+			proc.Protocol,
+			proc.LocalPort,
+			truncateString(proc.LocalAddress, 20),
+			truncateString(remoteAddr, 20),
+			state,
+		)
+	}
 }
 
 func truncateString(s string, maxLen int) string {
@@ -52,6 +63,7 @@ func truncateString(s string, maxLen int) string {
 	}
 	return s[:maxLen-3] + "..."
 }
+
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
