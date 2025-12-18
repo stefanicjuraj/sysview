@@ -79,8 +79,7 @@ Displays network statistics summary:
 
 Filter connections by state:
 
-- `sysview state LISTEN` - Show only listening ports
-- `sysview state ESTABLISHED` - Show only established connections
-- `sysview state TIME_WAIT` - Show connections in time wait state
-- `sysview state CLOSE_WAIT` - Show connections in close wait state
-- Or any other connection state
+- `sysview state LISTEN`: show only listening ports
+- `sysview state ESTABLISHED`: show only established connections
+- `sysview state TIME_WAIT`: show connections in time wait state
+- `sysview state CLOSE_WAIT`: show connections in close wait state
