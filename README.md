@@ -1,6 +1,30 @@
 # sysview
 
-Command-line tool to list active network processes and listening ports. The tool uses `lsof` to query active network connections and filters for processes in the LISTEN state, showing which ports are actively listening for incoming connections.
+Command-line tool to list active network processes and connections. The tool uses `lsof` to query active network connections and displays all connections with their local and remote addresses.
+
+```
+Active Network Processes (48)
+----------------------------------------------------------------------------------------------------
+PID      COMMAND              PROTO    PORT     LOCAL ADDRESS        REMOTE ADDRESS       STATE
+----------------------------------------------------------------------------------------------------
+626      identitys            TCP      1024     fe80:1a::3437:40d... fe80:1a::f26f:da2... ESTABLISHED
+626      identitys            TCP      1028     fe80:1a::3437:40d... fe80:1a::f26f:da2... ESTABLISHED
+12602    node                 TCP      3000     ::1                  -                    LISTEN
+12602    node                 TCP      3000     ::1                  ::1:52733            ESTABLISHED
+68082    remotepai            UDP      3722     0.0.0.0              -                    -
+585      rapportd             UDP      3722     0.0.0.0              -                    -
+...
+```
+
+```
+Total Connections: 44
+TCP: 37
+UDP: 7
+IPv4: 34
+IPv6: 10
+Listening: 5
+Established: 31
+```
 
 ## Installation
 
@@ -37,26 +61,26 @@ go build -o sysview .
 ## Usage
 
 ```bash
-sysview
+sysview                    # Show all network connections (default)
+sysview stats              # Show network statistics summary
+sysview state ESTABLISHED  # Filter by connection state (LISTEN, ESTABLISHED, TIME_WAIT, CLOSE_WAIT, etc.)
 ```
 
-Lists all active network processes that are listening on ports, displaying:
+### `stats`
 
-- **PID**: process ID
-- **COMMAND**: process name
-- **USER**: user running the process
-- **PORT**: network port number
-- **ADDRESS**: IP address (`0.0.0.0` means listening on all interfaces)
-- **STATE**: connection state (`LISTEN`)
+Displays network statistics summary:
 
-```
-Active Network Processes (5)
----------------------------------------------------------------------
-PID      COMMAND            USER       PORT      ADDRESS       STATE
----------------------------------------------------------------------
-12500    node               juraj      3000      ::1           LISTEN
-580      ControlCenter      juraj      5000      0.0.0.0       LISTEN
-420      Brave Browser      juraj      7000      0.0.0.0       LISTEN
-250      Raycast            juraj      1234      127.0.0.1     LISTEN
-585      rapportd           juraj      52001     0.0.0.0       LISTEN
-```
+- Total connections
+- TCP vs UDP counts
+- IPv4 vs IPv6 counts
+- Listening vs Established connections
+
+### `state`
+
+Filter connections by state:
+
+- `sysview state LISTEN` - Show only listening ports
+- `sysview state ESTABLISHED` - Show only established connections
+- `sysview state TIME_WAIT` - Show connections in time wait state
+- `sysview state CLOSE_WAIT` - Show connections in close wait state
+- Or any other connection state
